@@ -1,7 +1,4 @@
-import { ClientHello, KeyShareEntry, NamedGroup } from "../../def/keyxmsg.js";
-import * as x25519 from "@stablelib/x25519"
-import { Handshake } from "../../def/handshake.js";
-import { TLSPlaintext } from "../../def/record.js";
+import { ClientHelloRecord } from "../../records/clienthello.js";
 
 const enc = new TextEncoder;
 const dec = new TextDecoder;
@@ -53,7 +50,8 @@ export async function handleTsl(obj) {
    //let decoded = dec.decode(response.value).split('\r\n');
    //debugger;
    //* send clientHello
-   await writer.write(createClientHello());
+   const clientHello = new ClientHelloRecord()
+   await writer.write(clientHello.record);
    let response = await reader.read();
    let decoded = dec.decode(response.value).split('\r\n');
    debugger;
@@ -84,8 +82,8 @@ export async function handleGmail(obj) {
    decoded = dec.decode(response.value).split('\r\n')
 
    //* Send ClientHello
-   const clientHello = createClientHello()
-   await writer.write(clientHello)//mergeUint8(clientHello, new Uint8Array([13,10]))
+   const clientHello = new ClientHelloRecord()
+   await writer.write(clientHello.record)//mergeUint8(clientHello, new Uint8Array([13,10]))
 
    //* Read ClientHello response
    response = await reader.read();
@@ -94,11 +92,11 @@ export async function handleGmail(obj) {
    return true
 }
 
-function createClientHello() {
+/* function createClientHello(hostname='localhost') {
    const keys = x25519.generateKeyPair();
    const keyShareEntry = new KeyShareEntry(NamedGroup.x25519, keys.publicKey);
-   const clientHello = new ClientHello('localhost', keyShareEntry);
+   const clientHello = new ClientHello(hostname, keyShareEntry);
    const handshakeClientHello = new Handshake(clientHello);
    const recordClientHello = new TLSPlaintext(handshakeClientHello);
    return recordClientHello;
-}
+} */

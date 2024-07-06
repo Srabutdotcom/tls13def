@@ -21,7 +21,7 @@ class TLSPlaintext extends Struct {
       const length = new Uint16(fragment.length)
       super(
          fragment.type,
-         protocolVersion,
+         protocolVersion, //*uint16
          length, //*uint16
          fragment
       )
