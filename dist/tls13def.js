@@ -534,10 +534,13 @@ var NamedGroup = class {
   static secp521r1 = new Uint8Array([0, 25]);
   //obsolete_RESERVED(0x001A..0x001C),
   static x25519 = new Uint8Array([0, 29]);
-  /* x448(0x001E), */
+  static x448 = new Uint8Array([0, 30]);
   /* Finite Field Groups (DHE) */
-  /* ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
-  ffdhe6144(0x0103), ffdhe8192(0x0104), */
+  static ffdhe2048 = new Uint8Array([1, 0]);
+  static ffdhe3072 = new Uint8Array([1, 1]);
+  static ffdhe4096 = new Uint8Array([1, 2]);
+  static ffdhe6144 = new Uint8Array([1, 3]);
+  static ffdhe8192 = new Uint8Array([1, 4]);
   /* Reserved Code Points */
   /* ffdhe_private_use(0x01FC..0x01FF),
   ecdhe_private_use(0xFE00..0xFEFF),
@@ -578,6 +581,7 @@ var TLSPlaintext = class extends Struct {
     super(
       fragment.type,
       protocolVersion,
+      //*uint16
       length,
       //*uint16
       fragment
