@@ -401,11 +401,14 @@ export class NamedGroup {
    static secp521r1 = new Uint8Array([0x00, 0x19])
    //obsolete_RESERVED(0x001A..0x001C),
    static x25519 = new Uint8Array([0x00, 0x1D])
-   /* x448(0x001E), */
+   static x448 = new Uint8Array([0x00, 0x1E])
 
    /* Finite Field Groups (DHE) */
-   /* ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
-   ffdhe6144(0x0103), ffdhe8192(0x0104), */
+   static ffdhe2048 = new Uint8Array([0x01, 0x00])
+   static ffdhe3072 = new Uint8Array([0x01, 0x01])
+   static ffdhe4096 = new Uint8Array([0x01, 0x02])
+   static ffdhe6144 = new Uint8Array([0x01, 0x03])
+   static ffdhe8192 = new Uint8Array([0x01, 0x04])
 
    /* Reserved Code Points */
    /* ffdhe_private_use(0x01FC..0x01FF),
