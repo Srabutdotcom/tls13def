@@ -56,6 +56,28 @@ function mergeUint8(...arrays) {
   }
   return result;
 }
+function getUint8BE(data, pos = 0, length = 1) {
+  if (!(data instanceof Uint8Array)) {
+    throw new TypeError("Input data must be a byte array");
+  }
+  if (pos < 0 || pos >= data.length) {
+    throw new TypeError("Position is out of bounds");
+  }
+  if (length < 1) {
+    throw new TypeError("Length must be at least 1");
+  }
+  if (pos + length > data.length) {
+    throw TypeError(`length is beyond data.length`);
+  }
+  let output = 0;
+  for (let i = pos; i < pos + length; i++) {
+    output = output << 8 | data[i];
+  }
+  return output;
+}
+function getUint16(data, pos) {
+  return getUint8BE(data, pos, 2);
+}
 
 // def/base.js
 var Struct = class extends Uint8Array {
@@ -324,7 +346,10 @@ var ServerHello = class extends Struct {
   constructor(sessionId, cipherSuites, keyShareEntry) {
     const random = new Random();
     const compression2 = new Compression();
-    const cipherSuite = cipherSuites.find((e) => ciphers.map((f) => f.toString()).includes(e.toString()));
+    const cipherSuite = cipherSuites.find((e) => ciphers.map((f) => {
+      debugger;
+      return getUint16(f) == e;
+    }));
     const extensions = [
       new Extension(ExtensionType.supported_versions, new SupportedVersions()),
       new Extension(ExtensionType.key_share, new KeyShareServerHello(keyShareEntry))

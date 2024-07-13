@@ -101,3 +101,19 @@ export function getUint8BE(data, pos = 0, length = 1) {
 
    return output;
 }
+
+export function getUint8(data, pos) {
+   return getUint8BE(data, pos, 1);
+}
+
+export function getUint16(data, pos) {
+   return getUint8BE(data, pos, 2);
+}
+
+export function getUint24(data, pos) {
+   return getUint8BE(data, pos, 3);
+}
+
+export function getUint32(data, pos) {
+   return getUint8BE(data, pos, 4);
+}

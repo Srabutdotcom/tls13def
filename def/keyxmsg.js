@@ -2,7 +2,7 @@
  * !SECTION B.3.1.  Key Exchange Messages
  * LINK - https://datatracker.ietf.org/doc/html/rfc8446#appendix-B.3.1
  */
-import { mergeUint8, enc } from '../tools/tools.js';
+import { mergeUint8, enc, getUint16 } from '../tools/tools.js';
 import { FixedVector, Struct, Uint16, Uint8, Uint32, VariableVector } from './base.js'
 import { HandshakeType } from './handshake.js'
 
@@ -139,7 +139,7 @@ export class ServerHello extends Struct {
    constructor(sessionId, cipherSuites, keyShareEntry) {
       const random = new Random;
       const compression = new Compression;
-      const cipherSuite = cipherSuites.find(e => ciphers.map(f => f.toString()).includes(e.toString()))
+      const cipherSuite = cipherSuites.find(e => ciphers.map(f => {debugger;return getUint16(f)==e}))
       const extensions = [
          new Extension(ExtensionType.supported_versions, new SupportedVersions()),
          new Extension(ExtensionType.key_share, new KeyShareServerHello(keyShareEntry)),
