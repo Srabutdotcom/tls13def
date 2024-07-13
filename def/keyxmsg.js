@@ -138,6 +138,7 @@ export class ServerHello extends Struct {
    type = HandshakeType.server_hello;
    constructor(sessionId, cipherSuites, keyShareEntry) {
       const random = new Random;
+      const session_id = new VariableVector(sessionId,0, 32)
       const compression = new Compression;
       const cipherSuite = new Uint16(cipherSuites.find(e => ciphers.map(f => getUint16(f)==e)))
       const extensions = [
@@ -150,7 +151,7 @@ export class ServerHello extends Struct {
       super(
          protocolVersion,
          random,
-         sessionId,
+         session_id,
          cipherSuite,
          compression,
          ExtensionVector
