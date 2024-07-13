@@ -48,4 +48,16 @@ class TLSCiphertext extends Struct {
    }
 }
 
+export class ChangeCipherSpec extends Struct {
+   constructor(){
+      const length = new Uint16(1);
+      super(
+         ContentType.ChangeCipherSpec,
+         protocolVersion,
+         length,
+         new Uint8(1)
+      )
+   }
+}
+
 export { ContentType, TLSPlaintext, TLSInnerPlaintext, TLSCiphertext }

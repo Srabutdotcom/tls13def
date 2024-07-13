@@ -632,6 +632,17 @@ var TLSCiphertext = class extends Struct {
     );
   }
 };
+var ChangeCipherSpec = class extends Struct {
+  constructor() {
+    const length = new Uint16(1);
+    super(
+      ContentType.ChangeCipherSpec,
+      protocolVersion,
+      length,
+      new Uint8(1)
+    );
+  }
+};
 
 // def/handshake.js
 var HandshakeType = class {
@@ -827,6 +838,7 @@ export {
   CertificateRequest,
   CertificateType,
   CertificateVerify,
+  ChangeCipherSpec,
   CipherSuite,
   CipherSuites,
   ClientHello,
