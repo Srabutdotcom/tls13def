@@ -346,10 +346,7 @@ var ServerHello = class extends Struct {
   constructor(sessionId, cipherSuites, keyShareEntry) {
     const random = new Random();
     const compression2 = new Compression();
-    const cipherSuite = cipherSuites.find((e) => ciphers.map((f) => {
-      debugger;
-      return getUint16(f) == e;
-    }));
+    const cipherSuite = new Uint16(cipherSuites.find((e) => ciphers.map((f) => getUint16(f) == e)));
     const extensions = [
       new Extension(ExtensionType.supported_versions, new SupportedVersions()),
       new Extension(ExtensionType.key_share, new KeyShareServerHello(keyShareEntry))
