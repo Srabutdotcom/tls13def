@@ -721,9 +721,11 @@ var Certificate = class extends Struct {
     );
   }
 };
-function certificateList(...certs) {
-  return new VariableVector(mergeUint8(...certs), 0, 2 ** 24 - 1);
-}
+var CertificateList = class extends VariableVector {
+  constructor(...certs) {
+    super(mergeUint8(...certs), 0, 2 ** 24 - 1);
+  }
+};
 var CertificateVerify = class extends Struct {
   type = HandshakeType.certificate_verify;
   constructor(algorithm, signature) {
@@ -837,6 +839,7 @@ export {
   Certificate,
   CertificateAuthoritiesExtension,
   CertificateEntry,
+  CertificateList,
   CertificateRequest,
   CertificateType,
   CertificateVerify,
@@ -897,7 +900,6 @@ export {
   UncompressedPointRepresentation,
   VariableVector,
   Zeros,
-  certificateList,
   ciphers,
   compression,
   protocolVersion

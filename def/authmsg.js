@@ -38,8 +38,10 @@ class Certificate extends Struct {
    }
 }
 
-export function certificateList(...certs) {
-   return new VariableVector(mergeUint8(...certs), 0, 2 ** 24 - 1)
+export class CertificateList extends VariableVector {
+   constructor(...certs){
+      super(mergeUint8(...certs), 0, 2 ** 24 - 1)
+   }
 }
 
 class CertificateVerify extends Struct {
