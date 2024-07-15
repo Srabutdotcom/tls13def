@@ -701,7 +701,7 @@ var CertificateType = class {
   static Max = new Uint8(255);
 };
 var CertificateEntry = class extends Struct {
-  constructor(certificate, extensions) {
+  constructor(certificate, extensions = new Uint16(0)) {
     if (certificate instanceof Certificate == false)
       throw TypeError(`argument 1 must be instanceof Certificate`);
     const certVector = new VariableVector(certificate, 1, 2 ** 24 - 1);
@@ -714,7 +714,7 @@ var CertificateEntry = class extends Struct {
 };
 var Certificate = class extends Struct {
   type = HandshakeType.certificate;
-  constructor(certificate_request_context, certificate_list) {
+  constructor(certificate_list, certificate_request_context = new Uint8(0)) {
     const certReqCtxVector = new VariableVector(certificate_request_context, 0, 2 ** 8 - 1);
     const certificateEntry = new VariableVector(certificate_list, 0, 2 ** 24 - 1);
     super(
@@ -723,6 +723,9 @@ var Certificate = class extends Struct {
     );
   }
 };
+function certificateList(...certs) {
+  return new VariableVector(mergeUint8(...certs));
+}
 var CertificateVerify = class extends Struct {
   type = HandshakeType.certificate_verify;
   constructor(algorithm, signature) {
@@ -896,6 +899,7 @@ export {
   UncompressedPointRepresentation,
   VariableVector,
   Zeros,
+  certificateList,
   ciphers,
   compression,
   protocolVersion

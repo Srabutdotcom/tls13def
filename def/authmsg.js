@@ -3,7 +3,8 @@
  * LINK - https://datatracker.ietf.org/doc/html/rfc8446#appendix-B.3.3
  * *DONE - verified
  */
-import { Struct, VariableVector, Uint8 } from './base.js'
+import { mergeUint8 } from '../tools/tools.js'
+import { Struct, VariableVector, Uint8, Uint16 } from './base.js'
 import { HandshakeType } from './handshake.js'
 
 class CertificateType {
@@ -14,7 +15,7 @@ class CertificateType {
 }
 
 class CertificateEntry extends Struct {
-   constructor(certificate, extensions) {
+   constructor(certificate, extensions = new Uint16(0)) {
       if ((certificate instanceof Certificate) == false) throw TypeError(`argument 1 must be instanceof Certificate`)
       const certVector = new VariableVector(certificate, 1, 2 ** 24 - 1)
       const extension = new VariableVector(extensions, 0, 2 ** 16 - 1)
@@ -27,7 +28,7 @@ class CertificateEntry extends Struct {
 
 class Certificate extends Struct {
    type = HandshakeType.certificate
-   constructor(certificate_request_context, certificate_list) {
+   constructor(certificate_list, certificate_request_context = new Uint8(0)) {
       const certReqCtxVector = new VariableVector(certificate_request_context, 0, 2 ** 8 - 1);
       const certificateEntry = new VariableVector(certificate_list, 0, 2 ** 24 - 1)
       super(
@@ -35,6 +36,10 @@ class Certificate extends Struct {
          certificateEntry
       )
    }
+}
+
+export function certificateList(...certs){
+   return new VariableVector(mergeUint8(...certs))
 }
 
 class CertificateVerify extends Struct {
