@@ -16,7 +16,7 @@ class CertificateType {
 
 class CertificateEntry extends Struct {
    constructor(certificate, extensions = new Uint16(0)) {
-      if ((certificate instanceof Certificate) == false) throw TypeError(`argument 1 must be instanceof Certificate`)
+      //if ((certificate instanceof Certificate) == false) throw TypeError(`argument 1 must be instanceof Certificate`)
       const certVector = new VariableVector(certificate, 1, 2 ** 24 - 1)
       const extension = new VariableVector(extensions, 0, 2 ** 16 - 1)
       super(
@@ -38,8 +38,8 @@ class Certificate extends Struct {
    }
 }
 
-export function certificateList(...certs){
-   return new VariableVector(mergeUint8(...certs))
+export function certificateList(...certs) {
+   return new VariableVector(mergeUint8(...certs), 0, 2 ** 24 - 1)
 }
 
 class CertificateVerify extends Struct {
