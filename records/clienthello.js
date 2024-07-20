@@ -1,5 +1,7 @@
 import * as x25519 from "@stablelib/x25519"
-import { ClientHello, Handshake, KeyShareEntry, NamedGroup, TLSPlaintext } from "../mod.js";
+import { ClientHello, KeyShareEntry, NamedGroup } from '../def/keyxmsg.js'
+import { Handshake} from "../def/handshake.js";
+import { TLSPlaintext } from "../def/record.js";
 
 export class ClientHelloRecord {
    constructor(hostname='localhost'){

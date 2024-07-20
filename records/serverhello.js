@@ -1,5 +1,7 @@
 import * as x25519 from "@stablelib/x25519"
-import { ServerHello, KeyShareEntry, Handshake, TLSPlaintext, NamedGroup } from './tls13def.js';
+import { ServerHello, KeyShareEntry, NamedGroup } from '../def/keyxmsg.js'
+import { Handshake} from "../def/handshake.js";
+import { TLSPlaintext } from "../def/record.js";
 
 export class ServerHelloRecord {
    constructor(sessionId, cipherSuite){

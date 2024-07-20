@@ -1,3 +1,1206 @@
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined")
+    return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
+var __commonJS = (cb, mod) => function __require2() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+
+// ../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/source/browser.js
+var require_browser = __commonJS({
+  "../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/source/browser.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.BrowserRandomSource = void 0;
+    var QUOTA = 65536;
+    var BrowserRandomSource = class {
+      constructor() {
+        this.isAvailable = false;
+        this.isInstantiated = false;
+        const browserCrypto = typeof self !== "undefined" ? self.crypto || self.msCrypto : null;
+        if (browserCrypto && browserCrypto.getRandomValues !== void 0) {
+          this._crypto = browserCrypto;
+          this.isAvailable = true;
+          this.isInstantiated = true;
+        }
+      }
+      randomBytes(length) {
+        if (!this.isAvailable || !this._crypto) {
+          throw new Error("Browser random byte generator is not available.");
+        }
+        const out = new Uint8Array(length);
+        for (let i = 0; i < out.length; i += QUOTA) {
+          this._crypto.getRandomValues(out.subarray(i, i + Math.min(out.length - i, QUOTA)));
+        }
+        return out;
+      }
+    };
+    exports.BrowserRandomSource = BrowserRandomSource;
+  }
+});
+
+// ../../../node_modules/.deno/@stablelib+wipe@1.0.1/node_modules/@stablelib/wipe/lib/wipe.js
+var require_wipe = __commonJS({
+  "../../../node_modules/.deno/@stablelib+wipe@1.0.1/node_modules/@stablelib/wipe/lib/wipe.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function wipe(array) {
+      for (var i = 0; i < array.length; i++) {
+        array[i] = 0;
+      }
+      return array;
+    }
+    exports.wipe = wipe;
+  }
+});
+
+// (disabled):crypto
+var require_crypto = __commonJS({
+  "(disabled):crypto"() {
+  }
+});
+
+// ../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/source/node.js
+var require_node = __commonJS({
+  "../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/source/node.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NodeRandomSource = void 0;
+    var wipe_1 = require_wipe();
+    var NodeRandomSource = class {
+      constructor() {
+        this.isAvailable = false;
+        this.isInstantiated = false;
+        if (typeof __require !== "undefined") {
+          const nodeCrypto = require_crypto();
+          if (nodeCrypto && nodeCrypto.randomBytes) {
+            this._crypto = nodeCrypto;
+            this.isAvailable = true;
+            this.isInstantiated = true;
+          }
+        }
+      }
+      randomBytes(length) {
+        if (!this.isAvailable || !this._crypto) {
+          throw new Error("Node.js random byte generator is not available.");
+        }
+        let buffer = this._crypto.randomBytes(length);
+        if (buffer.length !== length) {
+          throw new Error("NodeRandomSource: got fewer bytes than requested");
+        }
+        const out = new Uint8Array(length);
+        for (let i = 0; i < out.length; i++) {
+          out[i] = buffer[i];
+        }
+        (0, wipe_1.wipe)(buffer);
+        return out;
+      }
+    };
+    exports.NodeRandomSource = NodeRandomSource;
+  }
+});
+
+// ../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/source/system.js
+var require_system = __commonJS({
+  "../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/source/system.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.SystemRandomSource = void 0;
+    var browser_1 = require_browser();
+    var node_1 = require_node();
+    var SystemRandomSource = class {
+      constructor() {
+        this.isAvailable = false;
+        this.name = "";
+        this._source = new browser_1.BrowserRandomSource();
+        if (this._source.isAvailable) {
+          this.isAvailable = true;
+          this.name = "Browser";
+          return;
+        }
+        this._source = new node_1.NodeRandomSource();
+        if (this._source.isAvailable) {
+          this.isAvailable = true;
+          this.name = "Node";
+          return;
+        }
+      }
+      randomBytes(length) {
+        if (!this.isAvailable) {
+          throw new Error("System random byte generator is not available.");
+        }
+        return this._source.randomBytes(length);
+      }
+    };
+    exports.SystemRandomSource = SystemRandomSource;
+  }
+});
+
+// ../../../node_modules/.deno/@stablelib+int@1.0.1/node_modules/@stablelib/int/lib/int.js
+var require_int = __commonJS({
+  "../../../node_modules/.deno/@stablelib+int@1.0.1/node_modules/@stablelib/int/lib/int.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function imulShim(a, b) {
+      var ah = a >>> 16 & 65535, al = a & 65535;
+      var bh = b >>> 16 & 65535, bl = b & 65535;
+      return al * bl + (ah * bl + al * bh << 16 >>> 0) | 0;
+    }
+    exports.mul = Math.imul || imulShim;
+    function add(a, b) {
+      return a + b | 0;
+    }
+    exports.add = add;
+    function sub(a, b) {
+      return a - b | 0;
+    }
+    exports.sub = sub;
+    function rotl(x, n) {
+      return x << n | x >>> 32 - n;
+    }
+    exports.rotl = rotl;
+    function rotr(x, n) {
+      return x << 32 - n | x >>> n;
+    }
+    exports.rotr = rotr;
+    function isIntegerShim(n) {
+      return typeof n === "number" && isFinite(n) && Math.floor(n) === n;
+    }
+    exports.isInteger = Number.isInteger || isIntegerShim;
+    exports.MAX_SAFE_INTEGER = 9007199254740991;
+    exports.isSafeInteger = function(n) {
+      return exports.isInteger(n) && (n >= -exports.MAX_SAFE_INTEGER && n <= exports.MAX_SAFE_INTEGER);
+    };
+  }
+});
+
+// ../../../node_modules/.deno/@stablelib+binary@1.0.1/node_modules/@stablelib/binary/lib/binary.js
+var require_binary = __commonJS({
+  "../../../node_modules/.deno/@stablelib+binary@1.0.1/node_modules/@stablelib/binary/lib/binary.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var int_1 = require_int();
+    function readInt16BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return (array[offset + 0] << 8 | array[offset + 1]) << 16 >> 16;
+    }
+    exports.readInt16BE = readInt16BE;
+    function readUint16BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return (array[offset + 0] << 8 | array[offset + 1]) >>> 0;
+    }
+    exports.readUint16BE = readUint16BE;
+    function readInt16LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return (array[offset + 1] << 8 | array[offset]) << 16 >> 16;
+    }
+    exports.readInt16LE = readInt16LE;
+    function readUint16LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return (array[offset + 1] << 8 | array[offset]) >>> 0;
+    }
+    exports.readUint16LE = readUint16LE;
+    function writeUint16BE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(2);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      out[offset + 0] = value >>> 8;
+      out[offset + 1] = value >>> 0;
+      return out;
+    }
+    exports.writeUint16BE = writeUint16BE;
+    exports.writeInt16BE = writeUint16BE;
+    function writeUint16LE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(2);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      out[offset + 0] = value >>> 0;
+      out[offset + 1] = value >>> 8;
+      return out;
+    }
+    exports.writeUint16LE = writeUint16LE;
+    exports.writeInt16LE = writeUint16LE;
+    function readInt32BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return array[offset] << 24 | array[offset + 1] << 16 | array[offset + 2] << 8 | array[offset + 3];
+    }
+    exports.readInt32BE = readInt32BE;
+    function readUint32BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return (array[offset] << 24 | array[offset + 1] << 16 | array[offset + 2] << 8 | array[offset + 3]) >>> 0;
+    }
+    exports.readUint32BE = readUint32BE;
+    function readInt32LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return array[offset + 3] << 24 | array[offset + 2] << 16 | array[offset + 1] << 8 | array[offset];
+    }
+    exports.readInt32LE = readInt32LE;
+    function readUint32LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      return (array[offset + 3] << 24 | array[offset + 2] << 16 | array[offset + 1] << 8 | array[offset]) >>> 0;
+    }
+    exports.readUint32LE = readUint32LE;
+    function writeUint32BE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(4);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      out[offset + 0] = value >>> 24;
+      out[offset + 1] = value >>> 16;
+      out[offset + 2] = value >>> 8;
+      out[offset + 3] = value >>> 0;
+      return out;
+    }
+    exports.writeUint32BE = writeUint32BE;
+    exports.writeInt32BE = writeUint32BE;
+    function writeUint32LE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(4);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      out[offset + 0] = value >>> 0;
+      out[offset + 1] = value >>> 8;
+      out[offset + 2] = value >>> 16;
+      out[offset + 3] = value >>> 24;
+      return out;
+    }
+    exports.writeUint32LE = writeUint32LE;
+    exports.writeInt32LE = writeUint32LE;
+    function readInt64BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var hi = readInt32BE(array, offset);
+      var lo = readInt32BE(array, offset + 4);
+      return hi * 4294967296 + lo - (lo >> 31) * 4294967296;
+    }
+    exports.readInt64BE = readInt64BE;
+    function readUint64BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var hi = readUint32BE(array, offset);
+      var lo = readUint32BE(array, offset + 4);
+      return hi * 4294967296 + lo;
+    }
+    exports.readUint64BE = readUint64BE;
+    function readInt64LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var lo = readInt32LE(array, offset);
+      var hi = readInt32LE(array, offset + 4);
+      return hi * 4294967296 + lo - (lo >> 31) * 4294967296;
+    }
+    exports.readInt64LE = readInt64LE;
+    function readUint64LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var lo = readUint32LE(array, offset);
+      var hi = readUint32LE(array, offset + 4);
+      return hi * 4294967296 + lo;
+    }
+    exports.readUint64LE = readUint64LE;
+    function writeUint64BE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(8);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      writeUint32BE(value / 4294967296 >>> 0, out, offset);
+      writeUint32BE(value >>> 0, out, offset + 4);
+      return out;
+    }
+    exports.writeUint64BE = writeUint64BE;
+    exports.writeInt64BE = writeUint64BE;
+    function writeUint64LE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(8);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      writeUint32LE(value >>> 0, out, offset);
+      writeUint32LE(value / 4294967296 >>> 0, out, offset + 4);
+      return out;
+    }
+    exports.writeUint64LE = writeUint64LE;
+    exports.writeInt64LE = writeUint64LE;
+    function readUintBE(bitLength, array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      if (bitLength % 8 !== 0) {
+        throw new Error("readUintBE supports only bitLengths divisible by 8");
+      }
+      if (bitLength / 8 > array.length - offset) {
+        throw new Error("readUintBE: array is too short for the given bitLength");
+      }
+      var result = 0;
+      var mul = 1;
+      for (var i = bitLength / 8 + offset - 1; i >= offset; i--) {
+        result += array[i] * mul;
+        mul *= 256;
+      }
+      return result;
+    }
+    exports.readUintBE = readUintBE;
+    function readUintLE(bitLength, array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      if (bitLength % 8 !== 0) {
+        throw new Error("readUintLE supports only bitLengths divisible by 8");
+      }
+      if (bitLength / 8 > array.length - offset) {
+        throw new Error("readUintLE: array is too short for the given bitLength");
+      }
+      var result = 0;
+      var mul = 1;
+      for (var i = offset; i < offset + bitLength / 8; i++) {
+        result += array[i] * mul;
+        mul *= 256;
+      }
+      return result;
+    }
+    exports.readUintLE = readUintLE;
+    function writeUintBE(bitLength, value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(bitLength / 8);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      if (bitLength % 8 !== 0) {
+        throw new Error("writeUintBE supports only bitLengths divisible by 8");
+      }
+      if (!int_1.isSafeInteger(value)) {
+        throw new Error("writeUintBE value must be an integer");
+      }
+      var div = 1;
+      for (var i = bitLength / 8 + offset - 1; i >= offset; i--) {
+        out[i] = value / div & 255;
+        div *= 256;
+      }
+      return out;
+    }
+    exports.writeUintBE = writeUintBE;
+    function writeUintLE(bitLength, value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(bitLength / 8);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      if (bitLength % 8 !== 0) {
+        throw new Error("writeUintLE supports only bitLengths divisible by 8");
+      }
+      if (!int_1.isSafeInteger(value)) {
+        throw new Error("writeUintLE value must be an integer");
+      }
+      var div = 1;
+      for (var i = offset; i < offset + bitLength / 8; i++) {
+        out[i] = value / div & 255;
+        div *= 256;
+      }
+      return out;
+    }
+    exports.writeUintLE = writeUintLE;
+    function readFloat32BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(array.buffer, array.byteOffset, array.byteLength);
+      return view.getFloat32(offset);
+    }
+    exports.readFloat32BE = readFloat32BE;
+    function readFloat32LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(array.buffer, array.byteOffset, array.byteLength);
+      return view.getFloat32(offset, true);
+    }
+    exports.readFloat32LE = readFloat32LE;
+    function readFloat64BE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(array.buffer, array.byteOffset, array.byteLength);
+      return view.getFloat64(offset);
+    }
+    exports.readFloat64BE = readFloat64BE;
+    function readFloat64LE(array, offset) {
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(array.buffer, array.byteOffset, array.byteLength);
+      return view.getFloat64(offset, true);
+    }
+    exports.readFloat64LE = readFloat64LE;
+    function writeFloat32BE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(4);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(out.buffer, out.byteOffset, out.byteLength);
+      view.setFloat32(offset, value);
+      return out;
+    }
+    exports.writeFloat32BE = writeFloat32BE;
+    function writeFloat32LE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(4);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(out.buffer, out.byteOffset, out.byteLength);
+      view.setFloat32(offset, value, true);
+      return out;
+    }
+    exports.writeFloat32LE = writeFloat32LE;
+    function writeFloat64BE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(8);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(out.buffer, out.byteOffset, out.byteLength);
+      view.setFloat64(offset, value);
+      return out;
+    }
+    exports.writeFloat64BE = writeFloat64BE;
+    function writeFloat64LE(value, out, offset) {
+      if (out === void 0) {
+        out = new Uint8Array(8);
+      }
+      if (offset === void 0) {
+        offset = 0;
+      }
+      var view = new DataView(out.buffer, out.byteOffset, out.byteLength);
+      view.setFloat64(offset, value, true);
+      return out;
+    }
+    exports.writeFloat64LE = writeFloat64LE;
+  }
+});
+
+// ../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/random.js
+var require_random = __commonJS({
+  "../../../node_modules/.deno/@stablelib+random@1.0.2/node_modules/@stablelib/random/lib/random.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.randomStringForEntropy = exports.randomString = exports.randomUint32 = exports.randomBytes = exports.defaultRandomSource = void 0;
+    var system_1 = require_system();
+    var binary_1 = require_binary();
+    var wipe_1 = require_wipe();
+    exports.defaultRandomSource = new system_1.SystemRandomSource();
+    function randomBytes(length, prng = exports.defaultRandomSource) {
+      return prng.randomBytes(length);
+    }
+    exports.randomBytes = randomBytes;
+    function randomUint32(prng = exports.defaultRandomSource) {
+      const buf = randomBytes(4, prng);
+      const result = (0, binary_1.readUint32LE)(buf);
+      (0, wipe_1.wipe)(buf);
+      return result;
+    }
+    exports.randomUint32 = randomUint32;
+    var ALPHANUMERIC = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    function randomString(length, charset = ALPHANUMERIC, prng = exports.defaultRandomSource) {
+      if (charset.length < 2) {
+        throw new Error("randomString charset is too short");
+      }
+      if (charset.length > 256) {
+        throw new Error("randomString charset is too long");
+      }
+      let out = "";
+      const charsLen = charset.length;
+      const maxByte = 256 - 256 % charsLen;
+      while (length > 0) {
+        const buf = randomBytes(Math.ceil(length * 256 / maxByte), prng);
+        for (let i = 0; i < buf.length && length > 0; i++) {
+          const randomByte = buf[i];
+          if (randomByte < maxByte) {
+            out += charset.charAt(randomByte % charsLen);
+            length--;
+          }
+        }
+        (0, wipe_1.wipe)(buf);
+      }
+      return out;
+    }
+    exports.randomString = randomString;
+    function randomStringForEntropy(bits, charset = ALPHANUMERIC, prng = exports.defaultRandomSource) {
+      const length = Math.ceil(bits / (Math.log(charset.length) / Math.LN2));
+      return randomString(length, charset, prng);
+    }
+    exports.randomStringForEntropy = randomStringForEntropy;
+  }
+});
+
+// ../../../node_modules/.deno/@stablelib+x25519@1.0.3/node_modules/@stablelib/x25519/lib/x25519.js
+var require_x25519 = __commonJS({
+  "../../../node_modules/.deno/@stablelib+x25519@1.0.3/node_modules/@stablelib/x25519/lib/x25519.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.sharedKey = exports.generateKeyPair = exports.generateKeyPairFromSeed = exports.scalarMultBase = exports.scalarMult = exports.SHARED_KEY_LENGTH = exports.SECRET_KEY_LENGTH = exports.PUBLIC_KEY_LENGTH = void 0;
+    var random_1 = require_random();
+    var wipe_1 = require_wipe();
+    exports.PUBLIC_KEY_LENGTH = 32;
+    exports.SECRET_KEY_LENGTH = 32;
+    exports.SHARED_KEY_LENGTH = 32;
+    function gf(init) {
+      const r = new Float64Array(16);
+      if (init) {
+        for (let i = 0; i < init.length; i++) {
+          r[i] = init[i];
+        }
+      }
+      return r;
+    }
+    var _9 = new Uint8Array(32);
+    _9[0] = 9;
+    var _121665 = gf([56129, 1]);
+    function car25519(o) {
+      let c = 1;
+      for (let i = 0; i < 16; i++) {
+        let v = o[i] + c + 65535;
+        c = Math.floor(v / 65536);
+        o[i] = v - c * 65536;
+      }
+      o[0] += c - 1 + 37 * (c - 1);
+    }
+    function sel25519(p, q, b) {
+      const c = ~(b - 1);
+      for (let i = 0; i < 16; i++) {
+        const t = c & (p[i] ^ q[i]);
+        p[i] ^= t;
+        q[i] ^= t;
+      }
+    }
+    function pack25519(o, n) {
+      const m = gf();
+      const t = gf();
+      for (let i = 0; i < 16; i++) {
+        t[i] = n[i];
+      }
+      car25519(t);
+      car25519(t);
+      car25519(t);
+      for (let j = 0; j < 2; j++) {
+        m[0] = t[0] - 65517;
+        for (let i = 1; i < 15; i++) {
+          m[i] = t[i] - 65535 - (m[i - 1] >> 16 & 1);
+          m[i - 1] &= 65535;
+        }
+        m[15] = t[15] - 32767 - (m[14] >> 16 & 1);
+        const b = m[15] >> 16 & 1;
+        m[14] &= 65535;
+        sel25519(t, m, 1 - b);
+      }
+      for (let i = 0; i < 16; i++) {
+        o[2 * i] = t[i] & 255;
+        o[2 * i + 1] = t[i] >> 8;
+      }
+    }
+    function unpack25519(o, n) {
+      for (let i = 0; i < 16; i++) {
+        o[i] = n[2 * i] + (n[2 * i + 1] << 8);
+      }
+      o[15] &= 32767;
+    }
+    function add(o, a, b) {
+      for (let i = 0; i < 16; i++) {
+        o[i] = a[i] + b[i];
+      }
+    }
+    function sub(o, a, b) {
+      for (let i = 0; i < 16; i++) {
+        o[i] = a[i] - b[i];
+      }
+    }
+    function mul(o, a, b) {
+      let v, c, t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0, t11 = 0, t12 = 0, t13 = 0, t14 = 0, t15 = 0, t16 = 0, t17 = 0, t18 = 0, t19 = 0, t20 = 0, t21 = 0, t22 = 0, t23 = 0, t24 = 0, t25 = 0, t26 = 0, t27 = 0, t28 = 0, t29 = 0, t30 = 0, b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3], b4 = b[4], b5 = b[5], b6 = b[6], b7 = b[7], b8 = b[8], b9 = b[9], b10 = b[10], b11 = b[11], b12 = b[12], b13 = b[13], b14 = b[14], b15 = b[15];
+      v = a[0];
+      t0 += v * b0;
+      t1 += v * b1;
+      t2 += v * b2;
+      t3 += v * b3;
+      t4 += v * b4;
+      t5 += v * b5;
+      t6 += v * b6;
+      t7 += v * b7;
+      t8 += v * b8;
+      t9 += v * b9;
+      t10 += v * b10;
+      t11 += v * b11;
+      t12 += v * b12;
+      t13 += v * b13;
+      t14 += v * b14;
+      t15 += v * b15;
+      v = a[1];
+      t1 += v * b0;
+      t2 += v * b1;
+      t3 += v * b2;
+      t4 += v * b3;
+      t5 += v * b4;
+      t6 += v * b5;
+      t7 += v * b6;
+      t8 += v * b7;
+      t9 += v * b8;
+      t10 += v * b9;
+      t11 += v * b10;
+      t12 += v * b11;
+      t13 += v * b12;
+      t14 += v * b13;
+      t15 += v * b14;
+      t16 += v * b15;
+      v = a[2];
+      t2 += v * b0;
+      t3 += v * b1;
+      t4 += v * b2;
+      t5 += v * b3;
+      t6 += v * b4;
+      t7 += v * b5;
+      t8 += v * b6;
+      t9 += v * b7;
+      t10 += v * b8;
+      t11 += v * b9;
+      t12 += v * b10;
+      t13 += v * b11;
+      t14 += v * b12;
+      t15 += v * b13;
+      t16 += v * b14;
+      t17 += v * b15;
+      v = a[3];
+      t3 += v * b0;
+      t4 += v * b1;
+      t5 += v * b2;
+      t6 += v * b3;
+      t7 += v * b4;
+      t8 += v * b5;
+      t9 += v * b6;
+      t10 += v * b7;
+      t11 += v * b8;
+      t12 += v * b9;
+      t13 += v * b10;
+      t14 += v * b11;
+      t15 += v * b12;
+      t16 += v * b13;
+      t17 += v * b14;
+      t18 += v * b15;
+      v = a[4];
+      t4 += v * b0;
+      t5 += v * b1;
+      t6 += v * b2;
+      t7 += v * b3;
+      t8 += v * b4;
+      t9 += v * b5;
+      t10 += v * b6;
+      t11 += v * b7;
+      t12 += v * b8;
+      t13 += v * b9;
+      t14 += v * b10;
+      t15 += v * b11;
+      t16 += v * b12;
+      t17 += v * b13;
+      t18 += v * b14;
+      t19 += v * b15;
+      v = a[5];
+      t5 += v * b0;
+      t6 += v * b1;
+      t7 += v * b2;
+      t8 += v * b3;
+      t9 += v * b4;
+      t10 += v * b5;
+      t11 += v * b6;
+      t12 += v * b7;
+      t13 += v * b8;
+      t14 += v * b9;
+      t15 += v * b10;
+      t16 += v * b11;
+      t17 += v * b12;
+      t18 += v * b13;
+      t19 += v * b14;
+      t20 += v * b15;
+      v = a[6];
+      t6 += v * b0;
+      t7 += v * b1;
+      t8 += v * b2;
+      t9 += v * b3;
+      t10 += v * b4;
+      t11 += v * b5;
+      t12 += v * b6;
+      t13 += v * b7;
+      t14 += v * b8;
+      t15 += v * b9;
+      t16 += v * b10;
+      t17 += v * b11;
+      t18 += v * b12;
+      t19 += v * b13;
+      t20 += v * b14;
+      t21 += v * b15;
+      v = a[7];
+      t7 += v * b0;
+      t8 += v * b1;
+      t9 += v * b2;
+      t10 += v * b3;
+      t11 += v * b4;
+      t12 += v * b5;
+      t13 += v * b6;
+      t14 += v * b7;
+      t15 += v * b8;
+      t16 += v * b9;
+      t17 += v * b10;
+      t18 += v * b11;
+      t19 += v * b12;
+      t20 += v * b13;
+      t21 += v * b14;
+      t22 += v * b15;
+      v = a[8];
+      t8 += v * b0;
+      t9 += v * b1;
+      t10 += v * b2;
+      t11 += v * b3;
+      t12 += v * b4;
+      t13 += v * b5;
+      t14 += v * b6;
+      t15 += v * b7;
+      t16 += v * b8;
+      t17 += v * b9;
+      t18 += v * b10;
+      t19 += v * b11;
+      t20 += v * b12;
+      t21 += v * b13;
+      t22 += v * b14;
+      t23 += v * b15;
+      v = a[9];
+      t9 += v * b0;
+      t10 += v * b1;
+      t11 += v * b2;
+      t12 += v * b3;
+      t13 += v * b4;
+      t14 += v * b5;
+      t15 += v * b6;
+      t16 += v * b7;
+      t17 += v * b8;
+      t18 += v * b9;
+      t19 += v * b10;
+      t20 += v * b11;
+      t21 += v * b12;
+      t22 += v * b13;
+      t23 += v * b14;
+      t24 += v * b15;
+      v = a[10];
+      t10 += v * b0;
+      t11 += v * b1;
+      t12 += v * b2;
+      t13 += v * b3;
+      t14 += v * b4;
+      t15 += v * b5;
+      t16 += v * b6;
+      t17 += v * b7;
+      t18 += v * b8;
+      t19 += v * b9;
+      t20 += v * b10;
+      t21 += v * b11;
+      t22 += v * b12;
+      t23 += v * b13;
+      t24 += v * b14;
+      t25 += v * b15;
+      v = a[11];
+      t11 += v * b0;
+      t12 += v * b1;
+      t13 += v * b2;
+      t14 += v * b3;
+      t15 += v * b4;
+      t16 += v * b5;
+      t17 += v * b6;
+      t18 += v * b7;
+      t19 += v * b8;
+      t20 += v * b9;
+      t21 += v * b10;
+      t22 += v * b11;
+      t23 += v * b12;
+      t24 += v * b13;
+      t25 += v * b14;
+      t26 += v * b15;
+      v = a[12];
+      t12 += v * b0;
+      t13 += v * b1;
+      t14 += v * b2;
+      t15 += v * b3;
+      t16 += v * b4;
+      t17 += v * b5;
+      t18 += v * b6;
+      t19 += v * b7;
+      t20 += v * b8;
+      t21 += v * b9;
+      t22 += v * b10;
+      t23 += v * b11;
+      t24 += v * b12;
+      t25 += v * b13;
+      t26 += v * b14;
+      t27 += v * b15;
+      v = a[13];
+      t13 += v * b0;
+      t14 += v * b1;
+      t15 += v * b2;
+      t16 += v * b3;
+      t17 += v * b4;
+      t18 += v * b5;
+      t19 += v * b6;
+      t20 += v * b7;
+      t21 += v * b8;
+      t22 += v * b9;
+      t23 += v * b10;
+      t24 += v * b11;
+      t25 += v * b12;
+      t26 += v * b13;
+      t27 += v * b14;
+      t28 += v * b15;
+      v = a[14];
+      t14 += v * b0;
+      t15 += v * b1;
+      t16 += v * b2;
+      t17 += v * b3;
+      t18 += v * b4;
+      t19 += v * b5;
+      t20 += v * b6;
+      t21 += v * b7;
+      t22 += v * b8;
+      t23 += v * b9;
+      t24 += v * b10;
+      t25 += v * b11;
+      t26 += v * b12;
+      t27 += v * b13;
+      t28 += v * b14;
+      t29 += v * b15;
+      v = a[15];
+      t15 += v * b0;
+      t16 += v * b1;
+      t17 += v * b2;
+      t18 += v * b3;
+      t19 += v * b4;
+      t20 += v * b5;
+      t21 += v * b6;
+      t22 += v * b7;
+      t23 += v * b8;
+      t24 += v * b9;
+      t25 += v * b10;
+      t26 += v * b11;
+      t27 += v * b12;
+      t28 += v * b13;
+      t29 += v * b14;
+      t30 += v * b15;
+      t0 += 38 * t16;
+      t1 += 38 * t17;
+      t2 += 38 * t18;
+      t3 += 38 * t19;
+      t4 += 38 * t20;
+      t5 += 38 * t21;
+      t6 += 38 * t22;
+      t7 += 38 * t23;
+      t8 += 38 * t24;
+      t9 += 38 * t25;
+      t10 += 38 * t26;
+      t11 += 38 * t27;
+      t12 += 38 * t28;
+      t13 += 38 * t29;
+      t14 += 38 * t30;
+      c = 1;
+      v = t0 + c + 65535;
+      c = Math.floor(v / 65536);
+      t0 = v - c * 65536;
+      v = t1 + c + 65535;
+      c = Math.floor(v / 65536);
+      t1 = v - c * 65536;
+      v = t2 + c + 65535;
+      c = Math.floor(v / 65536);
+      t2 = v - c * 65536;
+      v = t3 + c + 65535;
+      c = Math.floor(v / 65536);
+      t3 = v - c * 65536;
+      v = t4 + c + 65535;
+      c = Math.floor(v / 65536);
+      t4 = v - c * 65536;
+      v = t5 + c + 65535;
+      c = Math.floor(v / 65536);
+      t5 = v - c * 65536;
+      v = t6 + c + 65535;
+      c = Math.floor(v / 65536);
+      t6 = v - c * 65536;
+      v = t7 + c + 65535;
+      c = Math.floor(v / 65536);
+      t7 = v - c * 65536;
+      v = t8 + c + 65535;
+      c = Math.floor(v / 65536);
+      t8 = v - c * 65536;
+      v = t9 + c + 65535;
+      c = Math.floor(v / 65536);
+      t9 = v - c * 65536;
+      v = t10 + c + 65535;
+      c = Math.floor(v / 65536);
+      t10 = v - c * 65536;
+      v = t11 + c + 65535;
+      c = Math.floor(v / 65536);
+      t11 = v - c * 65536;
+      v = t12 + c + 65535;
+      c = Math.floor(v / 65536);
+      t12 = v - c * 65536;
+      v = t13 + c + 65535;
+      c = Math.floor(v / 65536);
+      t13 = v - c * 65536;
+      v = t14 + c + 65535;
+      c = Math.floor(v / 65536);
+      t14 = v - c * 65536;
+      v = t15 + c + 65535;
+      c = Math.floor(v / 65536);
+      t15 = v - c * 65536;
+      t0 += c - 1 + 37 * (c - 1);
+      c = 1;
+      v = t0 + c + 65535;
+      c = Math.floor(v / 65536);
+      t0 = v - c * 65536;
+      v = t1 + c + 65535;
+      c = Math.floor(v / 65536);
+      t1 = v - c * 65536;
+      v = t2 + c + 65535;
+      c = Math.floor(v / 65536);
+      t2 = v - c * 65536;
+      v = t3 + c + 65535;
+      c = Math.floor(v / 65536);
+      t3 = v - c * 65536;
+      v = t4 + c + 65535;
+      c = Math.floor(v / 65536);
+      t4 = v - c * 65536;
+      v = t5 + c + 65535;
+      c = Math.floor(v / 65536);
+      t5 = v - c * 65536;
+      v = t6 + c + 65535;
+      c = Math.floor(v / 65536);
+      t6 = v - c * 65536;
+      v = t7 + c + 65535;
+      c = Math.floor(v / 65536);
+      t7 = v - c * 65536;
+      v = t8 + c + 65535;
+      c = Math.floor(v / 65536);
+      t8 = v - c * 65536;
+      v = t9 + c + 65535;
+      c = Math.floor(v / 65536);
+      t9 = v - c * 65536;
+      v = t10 + c + 65535;
+      c = Math.floor(v / 65536);
+      t10 = v - c * 65536;
+      v = t11 + c + 65535;
+      c = Math.floor(v / 65536);
+      t11 = v - c * 65536;
+      v = t12 + c + 65535;
+      c = Math.floor(v / 65536);
+      t12 = v - c * 65536;
+      v = t13 + c + 65535;
+      c = Math.floor(v / 65536);
+      t13 = v - c * 65536;
+      v = t14 + c + 65535;
+      c = Math.floor(v / 65536);
+      t14 = v - c * 65536;
+      v = t15 + c + 65535;
+      c = Math.floor(v / 65536);
+      t15 = v - c * 65536;
+      t0 += c - 1 + 37 * (c - 1);
+      o[0] = t0;
+      o[1] = t1;
+      o[2] = t2;
+      o[3] = t3;
+      o[4] = t4;
+      o[5] = t5;
+      o[6] = t6;
+      o[7] = t7;
+      o[8] = t8;
+      o[9] = t9;
+      o[10] = t10;
+      o[11] = t11;
+      o[12] = t12;
+      o[13] = t13;
+      o[14] = t14;
+      o[15] = t15;
+    }
+    function square(o, a) {
+      mul(o, a, a);
+    }
+    function inv25519(o, inp) {
+      const c = gf();
+      for (let i = 0; i < 16; i++) {
+        c[i] = inp[i];
+      }
+      for (let i = 253; i >= 0; i--) {
+        square(c, c);
+        if (i !== 2 && i !== 4) {
+          mul(c, c, inp);
+        }
+      }
+      for (let i = 0; i < 16; i++) {
+        o[i] = c[i];
+      }
+    }
+    function scalarMult(n, p) {
+      const z = new Uint8Array(32);
+      const x = new Float64Array(80);
+      const a = gf(), b = gf(), c = gf(), d = gf(), e = gf(), f = gf();
+      for (let i = 0; i < 31; i++) {
+        z[i] = n[i];
+      }
+      z[31] = n[31] & 127 | 64;
+      z[0] &= 248;
+      unpack25519(x, p);
+      for (let i = 0; i < 16; i++) {
+        b[i] = x[i];
+      }
+      a[0] = d[0] = 1;
+      for (let i = 254; i >= 0; --i) {
+        const r = z[i >>> 3] >>> (i & 7) & 1;
+        sel25519(a, b, r);
+        sel25519(c, d, r);
+        add(e, a, c);
+        sub(a, a, c);
+        add(c, b, d);
+        sub(b, b, d);
+        square(d, e);
+        square(f, a);
+        mul(a, c, a);
+        mul(c, b, e);
+        add(e, a, c);
+        sub(a, a, c);
+        square(b, a);
+        sub(c, d, f);
+        mul(a, c, _121665);
+        add(a, a, d);
+        mul(c, c, a);
+        mul(a, d, f);
+        mul(d, b, x);
+        square(b, e);
+        sel25519(a, b, r);
+        sel25519(c, d, r);
+      }
+      for (let i = 0; i < 16; i++) {
+        x[i + 16] = a[i];
+        x[i + 32] = c[i];
+        x[i + 48] = b[i];
+        x[i + 64] = d[i];
+      }
+      const x32 = x.subarray(32);
+      const x16 = x.subarray(16);
+      inv25519(x32, x32);
+      mul(x16, x16, x32);
+      const q = new Uint8Array(32);
+      pack25519(q, x16);
+      return q;
+    }
+    exports.scalarMult = scalarMult;
+    function scalarMultBase(n) {
+      return scalarMult(n, _9);
+    }
+    exports.scalarMultBase = scalarMultBase;
+    function generateKeyPairFromSeed(seed) {
+      if (seed.length !== exports.SECRET_KEY_LENGTH) {
+        throw new Error(`x25519: seed must be ${exports.SECRET_KEY_LENGTH} bytes`);
+      }
+      const secretKey = new Uint8Array(seed);
+      const publicKey = scalarMultBase(secretKey);
+      return {
+        publicKey,
+        secretKey
+      };
+    }
+    exports.generateKeyPairFromSeed = generateKeyPairFromSeed;
+    function generateKeyPair3(prng) {
+      const seed = (0, random_1.randomBytes)(32, prng);
+      const result = generateKeyPairFromSeed(seed);
+      (0, wipe_1.wipe)(seed);
+      return result;
+    }
+    exports.generateKeyPair = generateKeyPair3;
+    function sharedKey(mySecretKey, theirPublicKey, rejectZero = false) {
+      if (mySecretKey.length !== exports.PUBLIC_KEY_LENGTH) {
+        throw new Error("X25519: incorrect secret key length");
+      }
+      if (theirPublicKey.length !== exports.PUBLIC_KEY_LENGTH) {
+        throw new Error("X25519: incorrect public key length");
+      }
+      const result = scalarMult(mySecretKey, theirPublicKey);
+      if (rejectZero) {
+        let zeros = 0;
+        for (let i = 0; i < result.length; i++) {
+          zeros |= result[i];
+        }
+        if (zeros === 0) {
+          throw new Error("X25519: invalid shared key");
+        }
+      }
+      return result;
+    }
+    exports.sharedKey = sharedKey;
+  }
+});
+
 // tools/tools.js
 var enc = new TextEncoder();
 var dec = new TextDecoder();
@@ -832,6 +2035,61 @@ var KeyUpdate = class extends Struct {
     super(KeyUpdateRequest2);
   }
 };
+
+// records/clienthello.js
+var x25519 = __toESM(require_x25519());
+var ClientHelloRecord = class {
+  constructor(hostname = "localhost") {
+    this.keys = x25519.generateKeyPair();
+    this.keyShareEntry = new KeyShareEntry(NamedGroup.x25519, this.keys.publicKey);
+    this.clientHello = new ClientHello(hostname, this.keyShareEntry);
+    this.handshake = new Handshake(this.clientHello);
+    this.record = new TLSPlaintext(this.handshake);
+  }
+};
+
+// records/serverhello.js
+var x255192 = __toESM(require_x25519());
+var ServerHelloRecord = class {
+  constructor(sessionId, cipherSuite) {
+    this.keys = x255192.generateKeyPair();
+    this.keyShareEntry = new KeyShareEntry(NamedGroup.x25519, this.keys.publicKey);
+    this.serverHello = new ServerHello(sessionId, cipherSuite, this.keyShareEntry);
+    this.handshake = new Handshake(this.serverHello);
+    this.record = new TLSPlaintext(this.handshake);
+  }
+};
+
+// records/encrypted.js
+var EncryptObject = class {
+  constructor(object) {
+    this.handshake = new Handshake(object);
+    this.record = new TLSPlaintext(this.handshake);
+    this.tlsInnerPlainText = new TLSInnerPlaintext(this.handshake, ContentType.Handshake);
+  }
+  header() {
+    return Uint8Array.from(this.record).slice(0, 5);
+  }
+  async encrypt(aead) {
+    if (this.encrypted)
+      return this.encrypted;
+    this.encrypted = await aead.encrypt(this.tlsInnerPlainText, this.header());
+    const test = await aead.decrypt(this.encrypted);
+    return this.encrypted;
+  }
+  async cipherText(aead) {
+    if (this.tlsCipherText)
+      return this.tlsCipherText;
+    if (this.encrypted)
+      return this.#cipherText();
+    await this.encrypt(aead);
+    return this.#cipherText();
+  }
+  #cipherText() {
+    this.tlsCipherText = new TLSCiphertext(this.encrypted);
+    return this.tlsCipherText;
+  }
+};
 export {
   Alert,
   AlertDescription,
@@ -847,6 +2105,7 @@ export {
   CipherSuite,
   CipherSuites,
   ClientHello,
+  ClientHelloRecord,
   Compression,
   ContentType,
   Cookie,
@@ -855,6 +2114,7 @@ export {
   ECPointFormatList,
   EarlyDataIndication,
   Empty,
+  EncryptObject,
   EncryptedExtensions,
   EndOfEarlyData,
   Extension,
@@ -883,6 +2143,7 @@ export {
   PskKeyExchangeModes,
   Random,
   ServerHello,
+  ServerHelloRecord,
   ServerName,
   ServerNameList,
   SessionId,
