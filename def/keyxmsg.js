@@ -137,11 +137,11 @@ export class ClientHello extends Struct {
 export class ServerHello extends Struct {
    type = HandshakeType.server_hello;
    constructor(sessionId, cipherSuites, keyShareEntry) {
-      this.random = new Random;
-      this.session_id = new VariableVector(sessionId,0, 32)
-      this.compression = new Uint8(0);
-      this.cipherSuite = new Uint16(cipherSuites.find(e => ciphers.map(f => getUint16(f)==e)))
-      this.extensions = [
+      const random = new Random;
+      const session_id = new VariableVector(sessionId,0, 32)
+      const compression = new Uint8(0);
+      const cipherSuite = new Uint16(cipherSuites.find(e => ciphers.map(f => getUint16(f)==e)))
+      const extensions = [
          new Extension(ExtensionType.supported_versions, new SupportedVersions()),
          new Extension(ExtensionType.key_share, new KeyShareServerHello(keyShareEntry)),
       ]
@@ -156,6 +156,11 @@ export class ServerHello extends Struct {
          compression,
          ExtensionVector
       )
+      this.random = random;
+      this.session_id = session_id;
+      this.compression = compression;
+      this.cipherSuite = cipherSuite;
+      this.extensions = extensions;
    }
 }
 

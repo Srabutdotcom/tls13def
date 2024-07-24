@@ -1521,11 +1521,11 @@ var ClientHello = class extends Struct {
    * @param {string} SNI 
    */
   constructor(SNI, keyShareEntries) {
-    const random2 = new Random();
+    const random = new Random();
     const sessionId = new SessionId();
     const compression2 = new Compression();
     const cipherSuites = new CipherSuites();
-    const extensions2 = [
+    const extensions = [
       new Extension(ExtensionType.server_name, new ServerNameList(new ServerName(SNI))),
       new Extension(ExtensionType.supported_groups, new NamedGroupList()),
       new Extension(ExtensionType.signature_algorithms, new SignatureSchemeList()),
@@ -1533,10 +1533,10 @@ var ClientHello = class extends Struct {
       new Extension(ExtensionType.psk_key_exchange_modes, new PskKeyExchangeModes()),
       new Extension(ExtensionType.key_share, new KeyShareClientHello(keyShareEntries))
     ];
-    const ExtensionVector = new VariableVector(mergeUint8(...extensions2), 8, 2 ** 16 - 1);
+    const ExtensionVector = new VariableVector(mergeUint8(...extensions), 8, 2 ** 16 - 1);
     super(
       protocolVersion,
-      random2,
+      random,
       sessionId,
       cipherSuites,
       compression2,
@@ -1547,11 +1547,11 @@ var ClientHello = class extends Struct {
 var ServerHello = class extends Struct {
   type = HandshakeType.server_hello;
   constructor(sessionId, cipherSuites, keyShareEntry) {
-    this.random = new Random();
-    this.session_id = new VariableVector(sessionId, 0, 32);
-    this.compression = new Uint8(0);
-    this.cipherSuite = new Uint16(cipherSuites.find((e) => ciphers.map((f) => getUint16(f) == e)));
-    this.extensions = [
+    const random = new Random();
+    const session_id = new VariableVector(sessionId, 0, 32);
+    const compression2 = new Uint8(0);
+    const cipherSuite = new Uint16(cipherSuites.find((e) => ciphers.map((f) => getUint16(f) == e)));
+    const extensions = [
       new Extension(ExtensionType.supported_versions, new SupportedVersions()),
       new Extension(ExtensionType.key_share, new KeyShareServerHello(keyShareEntry))
     ];
@@ -1561,9 +1561,14 @@ var ServerHello = class extends Struct {
       random,
       session_id,
       cipherSuite,
-      compression,
+      compression2,
       ExtensionVector
     );
+    this.random = random;
+    this.session_id = session_id;
+    this.compression = compression2;
+    this.cipherSuite = cipherSuite;
+    this.extensions = extensions;
   }
 };
 var ServerName = class extends Struct {
@@ -1904,9 +1909,9 @@ var CertificateType = class {
   static Max = new Uint8(255);
 };
 var CertificateEntry = class extends Struct {
-  constructor(certificate, extensions2 = new Uint16(0)) {
+  constructor(certificate, extensions = new Uint16(0)) {
     const certVector = new VariableVector(certificate, 1, 2 ** 24 - 1);
-    const extension = new VariableVector(extensions2, 0, 2 ** 16 - 1);
+    const extension = new VariableVector(extensions, 0, 2 ** 16 - 1);
     super(
       certVector,
       extension
@@ -1982,16 +1987,16 @@ var PostHandshakeAuth = class extends Struct {
 };
 var EncryptedExtensions = class extends Struct {
   type = HandshakeType.encrypted_extensions;
-  constructor(extensions2) {
-    const extension = new VariableVector(extensions2, 0, 2 ** 16 - 1);
+  constructor(extensions) {
+    const extension = new VariableVector(extensions, 0, 2 ** 16 - 1);
     super(extension);
   }
 };
 var CertificateRequest = class extends Struct {
   type = HandshakeType.certificate_request;
-  constructor(certificate_request_context, extensions2) {
+  constructor(certificate_request_context, extensions) {
     const certReqCtxVector = new VariableVector(certificate_request_context, 0, 2 ** 8 - 1);
-    const extension = new VariableVector(extensions2, 2, 2 ** 16 - 1);
+    const extension = new VariableVector(extensions, 2, 2 ** 16 - 1);
     super(
       certReqCtxVector,
       extension
@@ -2051,10 +2056,10 @@ var ClientHelloRecord = class {
 // records/serverhello.js
 var x255192 = __toESM(require_x25519());
 var ServerHelloRecord = class {
-  constructor(sessionId, cipherSuite2) {
+  constructor(sessionId, cipherSuite) {
     this.keys = x255192.generateKeyPair();
     this.keyShareEntry = new KeyShareEntry(NamedGroup.x25519, this.keys.publicKey);
-    this.serverHello = new ServerHello(sessionId, cipherSuite2, this.keyShareEntry);
+    this.serverHello = new ServerHello(sessionId, cipherSuite, this.keyShareEntry);
     this.handshake = new Handshake(this.serverHello);
     this.record = new TLSPlaintext(this.handshake);
   }
