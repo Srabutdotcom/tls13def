@@ -140,7 +140,7 @@ export class ServerHello extends Struct {
       const random = new Random;
       const session_id = new VariableVector(sessionId,0, 32)
       const compression = new Uint8(0);
-      const cipherSuite = new Uint16(cipherSuites.find(e => ciphers.map(f => getUint16(f)==e)))
+      const cipherSuite = ciphers.find(e=>cipherSuites.map(f=>getUint16(e)==f))//new Uint16(cipherSuites.find(e => ciphers.map(f => getUint16(f)==e)))
       const extensions = [
          new Extension(ExtensionType.supported_versions, new SupportedVersions()),
          new Extension(ExtensionType.key_share, new KeyShareServerHello(keyShareEntry)),
