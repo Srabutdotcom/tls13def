@@ -314,8 +314,9 @@ export class PreSharedKeyExtension extends Struct {
 //LINK - https://datatracker.ietf.org/doc/html/rfc8446#appendix-B.3.1.1
 export class SupportedVersions extends Struct {
    constructor(client) {
+      const tls12 = new ProtocolVersion(3);
       const tls13 = new ProtocolVersion(4);
-      const versions = client ? new VariableVector(tls13, 2, 254) : tls13
+      const versions = client ? new VariableVector(mergeUint8(tls12,tls13), 2, 254) : tls13
       super(versions)
    }
 }

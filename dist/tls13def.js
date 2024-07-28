@@ -1692,8 +1692,9 @@ var PreSharedKeyExtension = class extends Struct {
 };
 var SupportedVersions = class extends Struct {
   constructor(client) {
+    const tls12 = new ProtocolVersion(3);
     const tls13 = new ProtocolVersion(4);
-    const versions = client ? new VariableVector(tls13, 2, 254) : tls13;
+    const versions = client ? new VariableVector(mergeUint8(tls12, tls13), 2, 254) : tls13;
     super(versions);
   }
 };
@@ -1839,6 +1840,8 @@ var TLSCiphertext = class extends Struct {
       //*uint16
       encryptedRecord
     );
+    this.encryptedRecord = encryptedRecord;
+    this.header = mergeUint8(ContentType.Application, protocolVersion, length);
   }
 };
 var ChangeCipherSpec = class extends Struct {

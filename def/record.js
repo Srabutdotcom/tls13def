@@ -3,6 +3,7 @@
  * LINK - https://datatracker.ietf.org/doc/html/rfc8446#appendix-B.1
  * *DONE - verified
  */
+import { mergeUint8 } from "../tools/tools.js";
 import { Struct, Uint16, Uint8 } from "./base.js"
 import { protocolVersion } from './keyxmsg.js'
 
@@ -45,6 +46,8 @@ class TLSCiphertext extends Struct {
          length, //*uint16
          encryptedRecord
       )
+      this.encryptedRecord = encryptedRecord;
+      this.header = mergeUint8(ContentType.Application, protocolVersion, length)
    }
 }
 
