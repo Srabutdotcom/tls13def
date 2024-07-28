@@ -1923,10 +1923,9 @@ var CertificateEntry = class extends Struct {
 var Certificate = class extends Struct {
   type = HandshakeType.certificate;
   constructor(certificate_list, certificate_request_context = new Uint8(0)) {
-    const certReqCtxVector = new VariableVector(certificate_request_context, 0, 2 ** 8 - 1);
     const certificateEntry = new VariableVector(certificate_list, 0, 2 ** 24 - 1);
     super(
-      certReqCtxVector,
+      certificate_request_context,
       certificateEntry
     );
   }
