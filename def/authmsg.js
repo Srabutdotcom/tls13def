@@ -18,10 +18,10 @@ class CertificateEntry extends Struct {
    constructor(certificate, extensions = new Uint16(0)) {
       //if ((certificate instanceof Certificate) == false) throw TypeError(`argument 1 must be instanceof Certificate`)
       const certVector = new VariableVector(certificate, 1, 2 ** 24 - 1)
-      const extension = new VariableVector(extensions, 0, 2 ** 16 - 1)
+      //const extension = new VariableVector(extensions, 0, 2 ** 16 - 1)
       super(
          certVector,
-         extension
+         extensions
       )
    }
 }
